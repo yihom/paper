@@ -1,0 +1,199 @@
+<html>
+<head>
+<style>
+body {
+    overflow: hidden;
+}
+</style>
+</head>
+
+<body>
+
+<script src="js/r69/three.min.js"></script>
+<script src="js/OrbitControls.js"></script>
+<script src="js/KeyboardState.js"></script>
+<script src="simulate1.js"></script>
+
+<script>
+var camera, scene, renderer, light, controls, keyboard = new KeyboardState(),mouse = new THREE.Vector2(),clock,raycaster;
+var mousepos = new THREE.Vector3();
+var glass, sand;//玻璃、沙面
+var pickables = [];//可被pick
+var SandGeometry,SandMaterial,GlassGeometry,GlassMaterial;
+var wf=0;
+
+init();
+animate();
+
+/*玻璃面*/
+/*大小400*400  x:-200~200 y:-200~200*/
+/*位置(0,-1,0)						*/
+function GlassPlane(){
+	GlassGeometry = new THREE.BoxGeometry(400, 1, 400);
+	GlassMaterial = new THREE.MeshPhongMaterial({
+        color: 0xffffff,
+        wireframe: false,
+        side: THREE.DoubleSide,
+    });
+	glass = new THREE.Mesh(GlassGeometry, GlassMaterial);
+	glass.position.set(0,-1,0);
+	scene.add(glass);
+}
+
+/*沙面*/
+/*大小400*400  x:-200~200 y:-200~200*/
+/*分為100*100個高度點				*/
+/*位置(0,-1,0)						*/
+/*name:sandplane					*/
+function SandPlane(){
+    THREE.ImageUtils.crossOrigin = '';
+    var sandtexture = THREE.ImageUtils.loadTexture('sand.jpg');
+    var sandbumptex = THREE.ImageUtils.loadTexture('sandbump.jpg');
+	sandtexture.wrapS = sandtexture.wrapT = THREE.RepeatWrapping; 
+	sandtexture.repeat.set(4,4);
+	sandbumptex.wrapS = sandbumptex.wrapT = THREE.RepeatWrapping; 
+	sandbumptex.repeat.set(4,4);
+	
+	SandFunc = function (u0, v0) {
+        return new THREE.Vector3(-200 + 400 * u0,0, -200 + 400 * v0);
+    };
+	SandGeometry = new THREE.ParametricGeometry(SandFunc, 99, 99);
+	SandGeometry.dynamic = true;
+    SandGeometry.computeFaceNormals();
+
+    SandMaterial = new THREE.MeshPhongMaterial({
+        wireframe: true,
+        side: THREE.DoubleSide,
+        map: sandtexture,
+        bumpMap: sandbumptex,
+        bumpScale: 0.8,
+		polygonOffset: true,
+        polygonOffsetFactor: +1.0,
+        polygonOffsetUnits: +4.0
+    });
+	
+    sand = new THREE.Mesh(SandGeometry, SandMaterial);	
+	sand.position.set(0,50,0);
+	scene.add(sand);
+}
+
+/*玻璃邊框*/
+function box(){
+	var BoxGeometry = new THREE.BoxGeometry(415, 10, 5);
+	var BoxMaterial = new THREE.MeshPhongMaterial({
+        color: 0x448877,
+        wireframe: false,
+        side: THREE.DoubleSide,
+    });
+	
+	var box1 = new THREE.Mesh(BoxGeometry, BoxMaterial);	
+	box1.position.set(0,0,205);
+	scene.add(box1);
+	
+	var box2 = new THREE.Mesh(BoxGeometry, BoxMaterial);	
+	box2.position.set(0,0,-205);
+	scene.add(box2);
+	
+	var box3 = new THREE.Mesh(BoxGeometry, BoxMaterial);	
+	box3.position.set(205,0,0);
+	box3.rotation.y=3.14/2;
+	scene.add(box3);
+	
+	var box4 = new THREE.Mesh(BoxGeometry, BoxMaterial);	
+	box4.position.set(-205,0,0);
+	box4.rotation.y=3.14/2;
+	scene.add(box4);	
+}
+
+/*camera位置(0,300,500)*/
+function init() {
+    clock = new THREE.Clock();
+	var width = window.innerWidth;
+	var height = window.innerHeight;
+	
+    scene = new THREE.Scene();
+	
+    camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
+	camera.position.x = 0;
+    camera.position.z = 500;
+    camera.position.y = 300;
+	camera.lookAt (new THREE.Vector3(0,0,0));	
+    scene.add(camera);	
+	
+    light = new THREE.PointLight(0xffffff);
+    light.position.set(100, 300, 200);
+    scene.add(light);
+
+    var axis = new THREE.AxisHelper(20);
+	axis.position.set(0,50,0);
+    scene.add(axis);
+	
+    var gridXZ = new THREE.GridHelper(100, 10);
+    gridXZ.setColors(new THREE.Color(0xff0000), new THREE.Color(0xffffff));
+//    scene.add(gridXZ);
+
+	GlassPlane();
+	SandPlane();
+	box();
+	pickables = [glass,sand];
+	
+    renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x444444);
+    document.body.appendChild(renderer.domElement);
+    controls = new THREE.OrbitControls(camera, renderer.domElement);	
+	window.addEventListener ('resize', onWindowResize, false);
+
+	raycaster = new THREE.Raycaster();	
+	window.addEventListener( 'mousemove', onDocumentMouseMove, false );		
+}
+
+function onDocumentMouseMove( event ) {
+	event.preventDefault();
+	mouse.x = ( (event.clientX-event.target.offsetLeft) / window.innerWidth ) * 2 - 1;
+	mouse.y = - ( (event.clientY-event.target.offsetTop) / window.innerHeight ) * 2 + 1;
+	var vector = new THREE.Vector3( mouse.x, mouse.y, 1 ).unproject( camera );	
+	raycaster.set( camera.position, vector.sub( camera.position ).normalize() );
+	var intersects = raycaster.intersectObjects( pickables );
+	if ( intersects.length > 0 ) {
+			mousepos=intersects[0].point.clone();
+//			console.log(mousepos);
+			reuv();}
+}
+
+function onWindowResize()
+{
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+	renderer.setSize (window.innerWidth, window.innerHeight);
+}
+
+function gobalance(){
+	balance(deformed);
+}
+
+function animate() {
+    controls.update();
+	keyboard.update();		
+    requestAnimationFrame(animate);
+    render();
+	SandGeometry.computeFaceNormals();
+    SandGeometry.computeVertexNormals();	
+	SandGeometry.normalsNeedUpdate = true;
+	SandGeometry.verticesNeedUpdate = true;	
+	if ( keyboard.pressed("D"))
+	{
+		pointdrop(ru,rv);
+	}	
+	if ( keyboard.pressed("B"))
+	{
+		gobalance();
+	}	
+}
+function render() {
+    renderer.render(scene, camera);
+}
+</script>
+</body>
+
+</html>
