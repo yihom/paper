@@ -58,11 +58,11 @@ function SandPlane(){
         return new THREE.Vector3(-200 + 400 * u0,0, -200 + 400 * v0);
     };
 	SandGeometry = new THREE.ParametricGeometry(SandFunc, 99, 99);
-	SandGeometry.dynamic = true;
-    SandGeometry.computeFaceNormals();
+//	SandGeometry.dynamic = true;
+//    SandGeometry.computeFaceNormals();
 
     SandMaterial = new THREE.MeshPhongMaterial({
-        wireframe: true,
+        wireframe: false,
         side: THREE.DoubleSide,
         map: sandtexture,
         bumpMap: sandbumptex,
@@ -73,7 +73,7 @@ function SandPlane(){
     });
 	
     sand = new THREE.Mesh(SandGeometry, SandMaterial);	
-	sand.position.set(0,50,0);
+	sand.position.set(0,-1,0);
 	scene.add(sand);
 }
 
@@ -125,7 +125,7 @@ function init() {
     scene.add(light);
 
     var axis = new THREE.AxisHelper(20);
-	axis.position.set(0,50,0);
+	axis.position.set(0,0,0);
     scene.add(axis);
 	
     var gridXZ = new THREE.GridHelper(100, 10);
@@ -139,7 +139,7 @@ function init() {
 	
     renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColor(0x444444);
+    renderer.setClearColor(0x888888);
     document.body.appendChild(renderer.domElement);
     controls = new THREE.OrbitControls(camera, renderer.domElement);	
 	window.addEventListener ('resize', onWindowResize, false);
@@ -147,6 +147,16 @@ function init() {
 	raycaster = new THREE.Raycaster();	
 	window.addEventListener( 'mousemove', onDocumentMouseMove, false );		
 }
+
+
+
+/*沙量*/
+var sum;
+function Volume(){
+	for(var i = 0; i<10000; i++){
+		sum+=SandGeometry.vertices[i].y;
+	}
+} 
 
 function onDocumentMouseMove( event ) {
 	event.preventDefault();
@@ -168,27 +178,41 @@ function onWindowResize()
 	renderer.setSize (window.innerWidth, window.innerHeight);
 }
 
-function gobalance(){
-	balance(deformed);
-}
+
 
 function animate() {
     controls.update();
 	keyboard.update();		
     requestAnimationFrame(animate);
     render();
-	SandGeometry.computeFaceNormals();
-    SandGeometry.computeVertexNormals();	
-	SandGeometry.normalsNeedUpdate = true;
+//	SandGeometry.computeFaceNormals();
+//    SandGeometry.computeVertexNormals();	
+//	SandGeometry.normalsNeedUpdate = true;
 	SandGeometry.verticesNeedUpdate = true;	
 	if ( keyboard.pressed("D"))
 	{
 		pointdrop(ru,rv);
+		//randdrop(ru,rv);
 	}	
-	if ( keyboard.pressed("B"))
+	if ( keyboard.pressed("S"))
 	{
-		gobalance();
+		//handdeform(ru,rv);
+		pointdeform(ru,rv);
+		//randpointdeform(ru,rv);
+	}
+	if ( keyboard.pressed("T"))
+	{
+		PollexDeform(ru,rv);
+	}
+	if ( keyboard.pressed("O"))
+	{
+		rainsand();
+	}
+	if ( keyboard.pressed("C"))
+	{
+		ClearHandDeform(ru,rv);
 	}	
+
 }
 function render() {
     renderer.render(scene, camera);
