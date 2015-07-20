@@ -6,6 +6,10 @@
 /*		└----┘	1										 */
 /*mousepos(400*400的平面)->0~1的u0,v0					 */
 var ru,rv;
+
+var nine = new Array(0,1,99,100,101,-1,-99,-100,-101);
+var twfive = new Array(0,1,2,98,99,100,101,102,198,199,200,201,202,-1,-2,-98,-99,-100,-101,-102,-198,-199,-200,-201,-202);
+
 function reuv(){//pick return u0,v0
 	var x,z;
 	x=mousepos.x;
@@ -113,10 +117,13 @@ function randdrop(u,v){//sand drop
 /*沙子掉落					    */
 /*點擊位置掉落					*/
 function pointdrop(u,v){//sand drop
+
 	u=u*100;
 	v=v*100;
 	u=Math.floor(u);
 	v=Math.floor(v);
+//	console.log(u);
+//	console.log(v);
 	dropnumber=100*v+u;
 	SandGeometry.vertices[dropnumber].y+=1;
 	
@@ -199,6 +206,15 @@ function handdeform(u,v){//hand move
 /*滑鼠點擊位置單點下壓*/
 /*周圍8個位置平均上升 */
 var lastdeform;
+var lastuv = new THREE.Vector2();
+var save = new THREE.Vector2();
+var vecde = new THREE.Vector2();
+var vecdot;//前一個位置跟目前位置dot
+var tst=0;
+var dotsum=0;//全部dot之後相加
+var incdeform,inc;//增加的位置,增加量
+var dotarray = [];
+var savearray = [];
 function pointdeform(u,v){
 	var MDeform=[];
 	u=u*100;
@@ -206,42 +222,78 @@ function pointdeform(u,v){
 	u=Math.floor(u);
 	v=Math.floor(v); 
 	mousenumber=100*v+u;
-  //Average  1 point
-	var wa=mousenumber-lastdeform;
-	console.log(wa);
-	var reduce;
-	reduce=SandGeometry.vertices[mousenumber].y;
-	if(SandGeometry.vertices[mousenumber].y>0){
-		SandGeometry.vertices[mousenumber].y=0;
-		if(mousenumber+1!=lastdeform)
-			SandGeometry.vertices[mousenumber+1].y+=reduce/7;
-		if(mousenumber+99!=lastdeform)
-			SandGeometry.vertices[mousenumber+99].y+=reduce/7;
-		if(mousenumber+100!=lastdeform)
-			SandGeometry.vertices[mousenumber+100].y+=reduce/7;
-		if(mousenumber+101!=lastdeform)
-			SandGeometry.vertices[mousenumber+101].y+=reduce/7;
-		if(mousenumber-1!=lastdeform)
-			SandGeometry.vertices[mousenumber-1].y+=reduce/7;
-		if(mousenumber-99!=lastdeform)
-			SandGeometry.vertices[mousenumber-99].y+=reduce/7;
-		if(mousenumber-100!=lastdeform)
-			SandGeometry.vertices[mousenumber-100].y+=reduce/7;
-		if(mousenumber-100!=lastdeform)
-			SandGeometry.vertices[mousenumber-101].y+=reduce/7;
-	}
-	MDeform[0]=mousenumber;
-	MDeform[1]=mousenumber+1;
-	MDeform[2]=mousenumber+99;
-	MDeform[3]=mousenumber+100;
-	MDeform[4]=mousenumber+101;
-	MDeform[5]=mousenumber-1;
-	MDeform[6]=mousenumber-99;
-	MDeform[7]=mousenumber-100;
-	MDeform[8]=mousenumber-101;
+	var dsum=0;//9格共減少多少
+	var uv = new THREE.Vector2(u,v);
+	var vecuv = new THREE.Vector2(uv.x-lastuv.x,uv.y-lastuv.y);
+	vecuv = vecuv.normalize();
 	
+	for(var i = 0; i < 9; i++){
+		dsum+=SandGeometry.vertices[mousenumber+nine[i]].y;
+		SandGeometry.vertices[mousenumber+nine[i]].y=0;
+	}
+//	console.log(dsum);
+
+	var num=0,num1=0;
+	for(i = -2; i<=2; i++){
+		for(var j = -2; j<=2; j++){
+			if(i===2||j===2||i===-2||j===-2){
+//			if(tst==0)
+//			console.log(i+","+j);	
+				save.copy(uv);
+				save.x=save.x+i;
+				save.y=save.y+j;
+				vecde = new THREE.Vector2(save.x-uv.x,save.y-uv.y);
+				vecde = vecde.normalize();
+//				console.log("save:"+save.x+","+save.y);
+//				console.log("uv:"+uv.x+","+uv.y);
+//				console.log(savearray[num1].x+","+savearray[num1].y)
+				vecdot=vecuv.dot(vecde);
+				console.log("dot:"+vecdot);
+				debugger;
+				if(vecdot>0){
+					savearray[num1]=save;
+					console.log(num1);
+					//console.log("-1:"+savearray[num1-1].x+","+savearray[num1-1].y);
+					console.log(savearray[num1].x+","+savearray[num1].y);
+					dotarray[num]=vecdot;
+					num++;
+					num1++;
+				}
+			}
+			if(savearray[0]===undefined){}else{
+			console.log("tst"+savearray[0].x+","+savearray[0].y);}
+		}
+	}
+						for(var k = 0; k<savearray.length-1; k++){
+							console.log(savearray[k].x+","+savearray[k].y);
+						}
+//tst++;
+
+	for(i = 0; i<dotarray.length; i++){
+		dotsum+=dotarray[i];
+//		console.log(dotsum);
+	}
+
+	for(i = 0; i<savearray.length-1; i++){
+//	console.log(savearray[i].x+","+savearray[i].y)
+//		incdeform=100*savearray[i].y+savearray[i].x;
+//		console.log(incdeform);
+	}
+
+/*	
+	for(i = 0; i<dotarray.length; i++){
+		incdeform=100*savearray[i].y+savearray[i].x;
+		console.log(incdeform);
+		inc=dsum*dotarray[i]/dotsum;
+		SandGeometry.vertices[incdeform].y+=1;
+//		console.log("inc");
+	}*/
+	
+	dotsum=0;
+	lastuv.copy(uv);
 	lastdeform=mousenumber;
-	balance(MDeform);
+	
+//	balance(MDeform);
 }
 
 /*拇指移動		*/
@@ -563,7 +615,7 @@ function balance(deform){
 	}
 	
 
-	console.log("-------------");
+	//console.log("-------------");
 	
 }
 
