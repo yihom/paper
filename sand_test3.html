@@ -27,7 +27,7 @@ body {
 </script>
 <script id="myFragmentShader" type="x-shader/x-fragment">
     varying float varyHeight;
-
+	
     void main() {
         float diffuse = 1.0 - varyHeight;
         gl_FragColor = vec4(diffuse, diffuse, diffuse, 1.0);
@@ -70,7 +70,7 @@ function GlassPlane(){
 function SandPlane(){
 
 	SandFunc = function (u0, v0) {
-        return new THREE.Vector3(-50 + 100 * u0,6 * Math.random(), -50 + 100 * v0);
+        return new THREE.Vector3(-50 + 100 * u0,0, -50 + 100 * v0);
     };
 	SandGeometry = new THREE.ParametricGeometry(SandFunc, 39, 39);
     SandGeometry.computeFaceNormals();
@@ -223,16 +223,6 @@ function onWindowResize()
 
 
 function animate() {
-    controls.update();
-	keyboard.update();	
-    requestAnimationFrame(animate);
-    render();
-	
-    for (var i = 0; i < SandGeometry.vertices.length; i++) {
-        meshMaterial.attributes.vertexHeight.value[i] = SandGeometry.vertices[i].y / 6;
-    }		
-	
-	SandGeometry.verticesNeedUpdate = true;	
 	if ( keyboard.pressed("D"))
 	{
 		pointdrop(mousepos);
@@ -249,6 +239,10 @@ function animate() {
 	}
 	if ( keyboard.pressed("T"))
 	{
+		for (var i = 0; i < SandGeometry.vertices.length; i++) {
+			meshMaterial.attributes.vertexHeight.value[i] = 0;
+		}
+		console.log("11");	
 	}
 	if ( keyboard.pressed("O"))
 	{
@@ -258,12 +252,15 @@ function animate() {
 	}	
 	balance();
 
-	SandGeometry.computeFaceNormals();
-	SandGeometry.computeVertexNormals();
-	SandGeometry.normalsNeedUpdate = true;
-	SandGeometry.verticesNeedUpdate = true;	
 //	console.log(startb);
-	
+	for (var i = 0; i < SandGeometry.vertices.length; i++) {
+        meshMaterial.attributes.vertexHeight.value[i] = (SandGeometry.vertices[i].y) / 3;
+    }
+	meshMaterial.attributes.vertexHeight.needsUpdate = true;
+	keyboard.update();	
+	controls.update();	
+	requestAnimationFrame(animate);
+    render();
 }
 function render() {
     renderer.render(scene, camera);

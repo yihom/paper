@@ -1,0 +1,153 @@
+<html>
+<head>
+<style>
+body {
+    overflow: hidden;
+}
+#info {
+    position: absolute;
+    top: 0px;
+    width: 100%;
+    padding: 10px;
+    text-align: center;
+    color: #ff0000
+}
+</style>
+</head>
+
+<body>
+
+<div id="info">demo page</div>
+<script src="js/r69/three.min.js"></script>
+<script src="js/OrbitControls.js"></script>
+
+    
+</script>
+<script id="myVertexShader" type="x-shader/x-vertex">
+    attribute float vertexHeight;
+    varying float varyHeight;
+
+    void main() {
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        varyHeight = vertexHeight;
+    }
+</script>
+<script id="myFragmentShader" type="x-shader/x-fragment">
+    varying float varyHeight;
+
+    void main() {
+        float diffuse = 1.0 - varyHeight;
+        gl_FragColor = vec4(diffuse, diffuse, diffuse, 1.0);
+    }
+</script>
+
+
+<script>
+var camera, scene, renderer, geometry, controls;
+var clock = new THREE.Clock();
+var pointLight, meshMaterial, angle = 0;
+
+init();
+animate();
+
+function init() {
+
+    scene = new THREE.Scene();
+
+    camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
+    camera.position.z = 500;
+    scene.add(camera);
+
+    // [x,z]: [-100,100]x[-75,75]
+    meshFunc = function (u0, v0) {
+        return new THREE.Vector3(-100 + 200 * u0, 6 * Math.random(), 75 - 150 * v0);
+    };
+    geometry = new THREE.ParametricGeometry(meshFunc, 40, 40);
+    geometry.computeFaceNormals();
+    geometry.computeVertexNormals();
+
+    meshMaterial = new THREE.ShaderMaterial({
+        // uniform not used...
+        uniforms: {
+            lightpos: {
+                type: 'v3',
+                value: new THREE.Vector3()
+            }
+        },
+        attributes: {
+            vertexHeight: {
+                type: 'f',
+                value: []
+            }
+        },
+        vertexShader: document.getElementById('myVertexShader').textContent,
+        fragmentShader: document.getElementById('myFragmentShader').textContent
+    });
+
+    material = new THREE.MeshPhongMaterial({
+        color: 0xff1234,
+        wireframe: true,
+        side: THREE.DoubleSide,
+    });
+
+    mesh = new THREE.Mesh(geometry, meshMaterial);
+    scene.add(mesh);
+
+    pointLight = new THREE.PointLight(0xffffff);
+    //light.position.set(100, 300, 200);
+    scene.add(pointLight);
+
+    var axis = new THREE.AxisHelper(20);
+    scene.add(axis);
+
+    renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x888888);
+
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+    document.body.appendChild(renderer.domElement);
+    // mesh.geometry.normalsNeedUpdate = true;
+    // mesh.geometry.verticesNeedUpdate = true;
+
+}
+
+
+function animate() {
+/*    
+    var time = clock.getElapsedTime();
+
+    var nvs = mesh.geometry.vertices.length;
+    for (var i = 0; i < nvs; i++) {
+       mesh.geometry.vertices[i].y = 3 * Math.sin(mesh.geometry.vertices[i].x+time);
+    }
+    mesh.geometry.computeFaceNormals();
+    mesh.geometry.computeVertexNormals();
+    mesh.geometry.normalsNeedUpdate = true;
+    mesh.geometry.verticesNeedUpdate = true;
+*/
+
+    for (var i = 0; i < geometry.vertices.length; i++) {
+        meshMaterial.attributes.vertexHeight.value[i] = (geometry.vertices[i].y) / 6;
+		//console.log(meshMaterial.attributes.vertexHeight.value[i]);
+    }
+
+    angle += 0.01;
+    pointLight.position.set(50 * Math.cos(angle), 80, 50 * Math.sin(angle));
+    //pointLight.position.set (50,80,50);
+
+    //    lightSphere.position.copy(pointLight.position);
+    meshMaterial.uniforms.lightpos.value.copy(pointLight.position);
+
+    controls.update();
+    requestAnimationFrame(animate);
+    render();
+}
+
+function render() {
+    renderer.render(scene, camera);
+}
+</script>
+</body>
+
+</html>

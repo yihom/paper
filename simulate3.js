@@ -134,6 +134,7 @@ function pointdraw(){
 					addu=ru+i;
 					addv=rv+j;
 					addp=40*addv+addu;
+					if(addp>0&&addp<1600)
 					SandGeometry.vertices[addp].y+=inc;
 				}
 			}
@@ -146,6 +147,7 @@ function pointdraw(){
 					addu=ru+i;
 					addv=rv+j;
 					addp=40*addv+addu;
+					if(addp>0&&addp<1600)
 					SandGeometry.vertices[addp].y+=reduce/16;					
 				}
 			}
@@ -199,7 +201,8 @@ function balance(){
 				SandGeometry.vertices[i].y--;
 				for(j = 0; j<nine.length; j++){
 					if(heigher[j]==1){
-						SandGeometry.vertices[i+nine[j]].y=SandGeometry.vertices[i+nine[j]].y+1/hnumber;;
+					if(i+nine[j]>0&&i+nine[j]<1600)
+						SandGeometry.vertices[i+nine[j]].y=SandGeometry.vertices[i+nine[j]].y+1/hnumber;
 					}
 				}
 			}
@@ -217,4 +220,5 @@ function balance(){
 		SandGeometry.normalsNeedUpdate = true;
 		SandGeometry.verticesNeedUpdate = true;	
 	}
+
 }
