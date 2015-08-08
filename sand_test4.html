@@ -12,7 +12,7 @@ body {
 <script src="js/r69/three.min.js"></script>
 <script src="js/OrbitControls.js"></script>
 <script src="js/KeyboardState.js"></script>
-<script src="simulate3.js"></script>
+<script src="simulate4.js"></script>
 
 
 
@@ -164,17 +164,17 @@ body {
 <script>
 var camera, scene, renderer, light, controls, keyboard = new KeyboardState(),mouse = new THREE.Vector2(),clock,raycaster;
 var mousepos = new THREE.Vector3();
-var glass, sand;//¬Á¼ş¡B¨F­±
-var pickables = [];//¥i³Qpick
+var glass, sand;//ç»ç’ƒã€æ²™é¢
+var pickables = [];//å¯è¢«pick
 var SandGeometry,SandMaterial,GlassGeometry,GlassMaterial,meshMaterial;
 var wf=0;
 var angle = 0;
 init();
 animate();
 
-/*¬Á¼ş­±*/
-/*¤j¤p100*100  x:-50~50 y:-50~50*/
-/*¦ì¸m(0,-1,0)						*/
+/*ç»ç’ƒé¢*/
+/*å¤§å°100*100  x:-50~50 y:-50~50*/
+/*ä½ç½®(0,-1,0)						*/
 function GlassPlane(){
 	GlassGeometry = new THREE.BoxGeometry(100, 1, 100);
 	GlassMaterial = new THREE.MeshPhongMaterial({
@@ -187,10 +187,10 @@ function GlassPlane(){
 	scene.add(glass);
 }
 
-/*¨F­±*/
-/*¤j¤p100*100  x:-50~50 y:-50~50*/
-/*¤À¬°40*40­Ó°ª«×ÂI				*/
-/*¦ì¸m(0,-1,0)						*/
+/*æ²™é¢*/
+/*å¤§å°100*100  x:-50~50 y:-50~50*/
+/*åˆ†ç‚º40*40å€‹é«˜åº¦é»				*/
+/*ä½ç½®(0,-1,0)						*/
 /*name:sandplane					*/
 function SandPlane(){
 
@@ -209,6 +209,19 @@ function SandPlane(){
         polygonOffsetUnits: +4.0
     });
 	
+    noiseMaterial = new THREE.ShaderMaterial({
+        side: THREE.DoubleSide,
+        uniforms: {
+            lightPos: {
+                type: 'v3',
+                value: new THREE.Vector3(0, 110, 0)
+            }
+        },
+        vertexShader: document.getElementById('myVertexShader1').textContent,
+        fragmentShader: document.getElementById('myFragmentShader1').textContent,
+        wireframe: false
+    });		 	
+	
     meshMaterial = new THREE.ShaderMaterial({
         // uniform not used...
 		side: THREE.DoubleSide,
@@ -226,14 +239,13 @@ function SandPlane(){
         },
 		vertexShader: document.getElementById('myVertexShader').textContent,
         fragmentShader: document.getElementById('myFragmentShader').textContent
-    });
-	
+    });	
     sand = new THREE.Mesh(SandGeometry, meshMaterial);	
-	sand.position.set(0,11,0);
+	sand.position.set(0,-1,0);
 	scene.add(sand);
 }
 
-/*¬Á¼şÃä®Ø*/
+/*ç»ç’ƒé‚Šæ¡†*/
 function box(){
 	var BoxGeometry = new THREE.BoxGeometry(112, 10, 5);
 	var BoxMaterial = new THREE.MeshPhongMaterial({
@@ -261,7 +273,7 @@ function box(){
 	scene.add(box4);	
 }
 
-/*camera¦ì¸m(0,150,130)*/
+/*cameraä½ç½®(0,150,130)*/
 function init() {
     clock = new THREE.Clock();
 	var width = window.innerWidth;
@@ -274,8 +286,14 @@ function init() {
     camera.position.z = 150;
     camera.position.y = 130;
 	camera.lookAt (new THREE.Vector3(0,0,0));	
-    scene.add(camera);	
-	
+//    scene.add(camera);	
+//
+	topCamera = new THREE.OrthographicCamera (-80,80,80,-80, 10, 2000);
+	topCamera.position.set (0,450,0);
+	topCamera.up.set (0,0,-1);
+	topCamera.lookAt (new THREE.Vector3(0,0,0));	
+
+//	
     light = new THREE.PointLight(0xffffff);
     light.position.set(100, 300, 200);
     scene.add(light);
@@ -310,7 +328,7 @@ function init() {
 
 
 
-/*¨F¶q*/
+/*æ²™é‡*/
 var sum;
 function Volume(){
 	for(var i = 0; i<10000; i++){
@@ -321,8 +339,8 @@ function Volume(){
 function onDocumentMouseMove( event ) {
 	event.preventDefault();
 	mouse.x = ( (event.clientX-event.target.offsetLeft) / window.innerWidth ) * 2 - 1;
+	mouse.x=mouse.x-event.clientX/-640;
 	mouse.y = - ( (event.clientY-event.target.offsetTop) / window.innerHeight ) * 2 + 1;
-	
 	var vector = new THREE.Vector3( mouse.x, mouse.y, 1 ).unproject( camera );
 	raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
 
@@ -346,7 +364,6 @@ function onWindowResize()
 }
 
 
-var shader = 1;
 function animate() {
 	if ( keyboard.pressed("D"))
 	{
@@ -364,65 +381,55 @@ function animate() {
 	}
 	if ( keyboard.pressed("T"))
 	{
-		for (var i = 0; i < SandGeometry.vertices.length; i++) {
-			meshMaterial.attributes.vertexHeight.value[i] = 0;
-		}
-		console.log("11");	
+		startdraw();
 	}
 	if ( keyboard.pressed("O"))
 	{
-		meshMaterial = new THREE.ShaderMaterial({
-        side: THREE.DoubleSide,
-        uniforms: {
-            lightPos: {
-                type: 'v3',
-                value: new THREE.Vector3(0, 110, 0)
-            }
-        },
-        vertexShader: document.getElementById('myVertexShader1').textContent,
-        fragmentShader: document.getElementById('myFragmentShader1').textContent,
-        wireframe: false
-    });	
-	shader=0;
 	}
 	if ( keyboard.pressed("C"))
 	{
-		meshMaterial = new THREE.ShaderMaterial({
-			// uniform not used...
-			side: THREE.DoubleSide,
-			uniforms: {
-				lightpos: {
-					type: 'v3',
-					value: new THREE.Vector3()
-				}
-			},
-			attributes: {
-				vertexHeight: {
-					type: 'f',
-					value: []
-				}
-			},
-			vertexShader: document.getElementById('myVertexShader').textContent,
-			fragmentShader: document.getElementById('myFragmentShader').textContent
-		});	
-	shader=1;
 	}	
 	balance();
 
-//	console.log(startb);
-	if(shader==1){
-		for (var i = 0; i < SandGeometry.vertices.length; i++) {
-			meshMaterial.attributes.vertexHeight.value[i] = (SandGeometry.vertices[i].y) / 3;
+	for (var i = 0; i < SandGeometry.vertices.length; i++) {
+		meshMaterial.attributes.vertexHeight.value[i] = (SandGeometry.vertices[i].y) / 3;
 		}
-		meshMaterial.attributes.vertexHeight.needsUpdate = true;
-	}
+		
+	meshMaterial.attributes.vertexHeight.needsUpdate = true;
+	
+//	console.log(startb);
 	keyboard.update();	
 	controls.update();	
 	requestAnimationFrame(animate);
     render();
 }
-function render() {
-    renderer.render(scene, camera);
+
+function render(){
+	var SCREEN_W, SCREEN_H;
+	SCREEN_W = window.innerWidth;
+	SCREEN_H = window.innerHeight;
+
+	var left,bottom,width,height;
+
+	left = 0.5*SCREEN_W+1; bottom = 1; width = 0.5*SCREEN_W-2; height = SCREEN_H-2;
+	renderer.setViewport (left,bottom,width,height);
+	renderer.setScissor(left,bottom,width,height);
+	renderer.enableScissorTest (true);  // clip out "viewport"
+	camera.aspect = width/height;
+	camera.updateProjectionMatrix();
+	sand.material = meshMaterial;
+	renderer.render (scene,topCamera);
+	
+	
+	left = 1; bottom = 1; width = 0.5*SCREEN_W-2; height = SCREEN_H-2;
+	renderer.setViewport (left,bottom,width,height);
+	renderer.setScissor(left,bottom,width,height);
+	renderer.enableScissorTest (true);
+	topCamera.aspect = width/height;
+	topCamera.updateProjectionMatrix();	 
+	sand.material = noiseMaterial;
+	renderer.render (scene,camera);
+
 }
 </script>
 </body>
