@@ -339,7 +339,8 @@ function Volume(){
 function onDocumentMouseMove( event ) {
 	event.preventDefault();
 	mouse.x = ( (event.clientX-event.target.offsetLeft) / window.innerWidth ) * 2 - 1;
-	mouse.x=mouse.x-event.clientX/-640;
+	console.log(window.innerWidth);
+	mouse.x=mouse.x-event.clientX/-(window.innerWidth/2);
 	mouse.y = - ( (event.clientY-event.target.offsetTop) / window.innerHeight ) * 2 + 1;
 	var vector = new THREE.Vector3( mouse.x, mouse.y, 1 ).unproject( camera );
 	raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
