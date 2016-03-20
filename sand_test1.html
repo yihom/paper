@@ -62,7 +62,7 @@ function SandPlane(){
 //    SandGeometry.computeFaceNormals();
 
     SandMaterial = new THREE.MeshPhongMaterial({
-        wireframe: false,
+        wireframe: true,
         side: THREE.DoubleSide,
         map: sandtexture,
         bumpMap: sandbumptex,
@@ -73,7 +73,7 @@ function SandPlane(){
     });
 	
     sand = new THREE.Mesh(SandGeometry, SandMaterial);	
-	sand.position.set(0,-1,0);
+	sand.position.set(0,10,0);
 	scene.add(sand);
 }
 

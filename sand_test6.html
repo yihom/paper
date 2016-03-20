@@ -149,21 +149,25 @@ var pickPlane;
 var vIDs = []; // row major
 var mouse = new THREE.Vector2();
 var keyboard = new KeyboardState();
+var move;
 init();
 initHex();
 animate();
+
+
+
 
 function init() {
     scene = new THREE.Scene();
 
     camera = new THREE.PerspectiveCamera(20, window.innerWidth / window.innerHeight, 1, 10000);
     scene.add(camera);
-    camera.position.set (400,300,100);
+    camera.position.set (50,50,30);
     camera.up.set (0,0,1);
     camera.lookAt (new THREE.Vector3(200,200,0));
 
     light = new THREE.PointLight(0xffffff);
-    light.position.set(100, 100, 100);
+    light.position.set(30, 50, 100);
     scene.add(light);
 
 	var axisHelper = new THREE.AxisHelper( 100 );
@@ -194,6 +198,9 @@ function init() {
     hex0 = initUnitHexMesh();
     hex0.scale.set(size,size,size);
     scene.add(hex0);
+	//obj();
+	//obj2();
+	obj3();
     hex0.visible = false;
 }
 
@@ -206,14 +213,15 @@ function onDocumentMouseMove(event) {
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
     var raycaster = new THREE.Raycaster();
     raycaster.setFromCamera( mouse, camera );  // new usage of raycaster (since r.70)
-/*
+
     var vector = new THREE.Vector3(mouse.x, mouse.y, 1).unproject(camera);
     var raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
-*/
+
     var intersects = raycaster.intersectObject(pickPlane);
     if (intersects.length > 0) {
-            var move = intersects[0].point.clone();
+            move = intersects[0].point.clone();
             hex = pixel_to_hex(layout, Point(move.x, move.y));
+			
             //highLightHex(hex_round(hex), -1);
 			//highLightHex(hex_round(hex));
     }
@@ -226,13 +234,15 @@ function onWindowResize() {
 }
 
 function animate() {
-
+	dt = 0.02;//clock.getDelta();
 	if ( keyboard.pressed("D"))
 	{
+		hex = pixel_to_hex(layout, Point(move.x, move.y))
 		expdrop(hex_round(hex));
 	}	
 	if ( keyboard.pressed("S"))
 	{
+		hex = pixel_to_hex(layout, Point(move.x, move.y))
 		draw(hex_round(hex));
 	}
 	if ( keyboard.up("S"))
@@ -243,9 +253,40 @@ function animate() {
 	if ( keyboard.pressed("T"))
 	{
 		start();
-	}	
-	balance();
+	}
+	if ( keyboard.pressed("up"))
+	{
+		ap.z=ap.z+0.1;
+		cube.position.set(ap.x,ap.y,ap.z);
+	}
+	if ( keyboard.pressed("down"))
+	{
+		ap.z=ap.z-0.1;
+		cube.position.set(ap.x,ap.y,ap.z);
+	}
+	if ( keyboard.pressed("left"))
+	{
+		ap.x=ap.x+0.1;
+		cube.position.set(ap.x,ap.y,ap.z);
+	}
+	if ( keyboard.pressed("right"))
+	{
+		bp.y=bp.y+0.1;
+		//cube.position.set(ap.x,ap.y,ap.z);
+	}
 	
+	//hex = pixel_to_hex(layout, Point(ap.x, ap.y));
+	//obj1col(hex_round(hex));
+	
+	//obj2col();
+	
+	hex = pixel_to_hex(layout, Point(bp.x, bp.y));
+	obj3col(hex_round(hex));
+	//balance();
+	//sumsand();
+
+
+
     mesh.geometry.verticesNeedUpdate = true;
     mesh.geometry.computeFaceNormals();
     mesh.geometry.computeVertexNormals();

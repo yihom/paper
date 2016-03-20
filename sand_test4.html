@@ -202,7 +202,7 @@ function SandPlane(){
     SandGeometry.computeVertexNormals();
 
     SandMaterial = new THREE.MeshPhongMaterial({
-        wireframe: false,
+        wireframe: true,
         side: THREE.DoubleSide,
 		polygonOffset: true,
         polygonOffsetFactor: +1.0,
@@ -241,7 +241,7 @@ function SandPlane(){
         fragmentShader: document.getElementById('myFragmentShader').textContent
     });	
     sand = new THREE.Mesh(SandGeometry, meshMaterial);	
-	sand.position.set(0,-1,0);
+	sand.position.set(0,10,0);
 	scene.add(sand);
 }
 
@@ -389,6 +389,8 @@ function animate() {
 	}
 	if ( keyboard.pressed("C"))
 	{
+		reuv();
+		pointdrop1(ru,rv);
 	}	
 	balance();
 
@@ -428,7 +430,7 @@ function render(){
 	renderer.enableScissorTest (true);
 	topCamera.aspect = width/height;
 	topCamera.updateProjectionMatrix();	 
-	sand.material = noiseMaterial;
+	sand.material = SandMaterial;
 	renderer.render (scene,camera);
 
 }

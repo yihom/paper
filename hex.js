@@ -1,5 +1,5 @@
 // hex related
-var size = 1;
+var size = 5;
 var columns = 40, rows = 40;
 var layout = Layout(layout_pointy, Point(size, size), Point(-30, -30));
 var offset = Math.floor ((rows-1)/2);

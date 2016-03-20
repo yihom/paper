@@ -130,7 +130,7 @@ function pointdrop(u,v){//sand drop
 	/*平衡*/
 	deformed[0]=dropnumber;
 //	console.log(deformed[0]);
-	balance(deformed);
+//	balance(deformed);
 }
 
 /*滑鼠點擊+周圍8個位置下壓*/

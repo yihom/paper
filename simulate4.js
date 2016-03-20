@@ -59,6 +59,33 @@ function pointdrop(pos){//sand drop
 	sandsum=0;
 }
 
+///////////////////////////////////test///////////////////////////
+
+function pointdrop1(u,v){//sand drop
+	var dropnumber;
+//	u=u*100;
+//	v=v*100;
+//	u=Math.floor(u);
+//	v=Math.floor(v);
+//	console.log(u);
+//	console.log(v);
+	dropnumber=40*v+u;
+	if(SandGeometry.vertices[dropnumber].y!=3){
+		SandGeometry.vertices[dropnumber].y=3;
+	}
+	
+	/*平衡*/
+//	deformed[0]=dropnumber;
+//	console.log(deformed[0]);
+//	balance(deformed);
+    SandGeometry.computeFaceNormals();
+    SandGeometry.computeVertexNormals();
+    SandGeometry.normalsNeedUpdate = true;
+    SandGeometry.verticesNeedUpdate = true;
+}
+
+////////////////////////////////////////////////////////////////
+
 var point;
 var reduce=0;
 var lastvec = new THREE.Vector2(-1,-1);//上一個位置
